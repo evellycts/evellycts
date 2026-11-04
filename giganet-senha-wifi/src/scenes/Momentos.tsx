@@ -58,14 +58,16 @@ export const posesMomentos = (f: number, relax = 0) => {
   v.mouth = laughV > 0.4 || sq > 0.5 || laughAll > 0.5 || relax ? 'grin' : 'smile';
   v.blink = Math.max(blinkAt(f, [180, 236, 380]), laughV * 0.75);
   v.bob = Math.sin(f * 0.9) * 4 * Math.max(laughV, laughAll * 0.6);
-  const vPhoneRest: Pt = [v.x + 60, 1250];
-  const vPhoneShow: Pt = [v.x + 120, 1200];
-  v.armR = ik(v, 'R', [lerp(vPhoneRest[0], vPhoneShow[0], show), lerp(vPhoneRest[1], vPhoneShow[1], show)], -1);
-  v.armL = mixArm([22, -60], [120, -80], sq);
-  if (relax) {
-    v.armR = mixArm(v.armR, [40, -120], relax);
-    v.armL = mixArm(v.armL, [40, -120], relax);
-  }
+  // braços sempre por IK até alvos reais: colo, celular, rosto
+  const vPhoneRest: Pt = [v.x + 45, 1335]; // celular no colo, olhando para baixo
+  const vPhoneShow: Pt = [v.x + 130, 1225]; // virado para a amiga
+  const vPhone: Pt = [lerp(vPhoneRest[0], vPhoneShow[0], show), lerp(vPhoneRest[1], vPhoneShow[1], show)];
+  const vLap: Pt = [v.x - 38, 1405];
+  const vPeace: Pt = [v.x - 70, 1105]; // "paz e amor" na selfie
+  v.armR = relax ? ik(v, 'R', [v.x + 38, 1405], 1) : ik(v, 'R', vPhone, -1);
+  const vl = ik(v, 'L', [lerp(vLap[0], vPeace[0], sq), lerp(vLap[1], vPeace[1], sq)], 1);
+  v.armL = vl;
+  v.pointL = sq > 0.6;
 
   // ---- amiga
   const a: Pose = {x: SEATS.amiga, y: SOFA.seat, s: 0.95, sit: 1, look: LOOKS.amiga};
@@ -80,9 +82,10 @@ export const posesMomentos = (f: number, relax = 0) => {
   a.headTilt = lerp(0, -4, sq) + laughV * -6;
   a.lean = -relax * 5;
   // mão na boca de tanto rir
-  a.armL = mixArm([20, -50], ik(a, 'L', [a.x - 10, 1160], 1), laughV);
-  a.armR = mixArm([20, -50], [150, -30], sq * 0.8);
-  if (relax) a.armL = mixArm(a.armL, [30, -100], relax);
+  const aLapL: Pt = [a.x - 38, 1405];
+  const aMouth: Pt = [a.x - 8, 1165];
+  a.armL = ik(a, 'L', [lerp(aLapL[0], aMouth[0], laughV), lerp(aLapL[1], aMouth[1], laughV)], 1);
+  a.armR = ik(a, 'R', [a.x + 38, 1405], 1);
 
   // ---- anfitriã
   const h: Pose = {x: lerp(SEATS.anfitria, SEATS.anfitria - 80, sq), y: SOFA.seat, s: 0.95, sit: 1, look: LOOKS.anfitria};
@@ -95,11 +98,13 @@ export const posesMomentos = (f: number, relax = 0) => {
   h.headTilt = lerp(0, -8, sq);
   h.bob = Math.sin(f * 0.9 + 2) * 4 * Math.max(laughV * 0.5, laughAll * 0.6);
   h.lean = lerp(0, -6, sq) - relax * 5;
-  const hPhone: Pt = [h.x - 60, 1255];
-  const selfie: Pt = [h.x + 30, 1010];
-  h.armL = ik(h, 'L', hPhone, -1);
-  h.armR = mixArm([22, -60], ik(h, 'R', selfie, -1), sq);
-  if (relax) h.armR = mixArm(h.armR, [40, -120], relax);
+  const hPhoneRest: Pt = [h.x - 45, 1335];
+  const hPhoneUp: Pt = [h.x - 55, 1270]; // ergue para escolher a música
+  const hp: Pt = [lerp(hPhoneRest[0], hPhoneUp[0], music), lerp(hPhoneRest[1], hPhoneUp[1], music)];
+  const hLapR: Pt = [h.x + 38, 1405];
+  const selfie: Pt = [h.x + 40, 1015];
+  h.armL = relax ? ik(h, 'L', [h.x - 38, 1405], 1) : ik(h, 'L', hp, -1);
+  h.armR = ik(h, 'R', [lerp(hLapR[0], selfie[0], sq), lerp(hLapR[1], selfie[1], sq)], sq > 0.3 ? -1 : 1);
   return {v, a, h, show, music, sq};
 };
 
@@ -119,7 +124,7 @@ export const MundoSala: React.FC<{f: number; relax?: number; phones?: boolean}> 
       <Character pose={h} />
       <SofaFront />
       <MesaCentro />
-      {phones && (
+      {phones && !relax && (
         <g>
           {/* celular da visita: de costas, depois virado para a amiga */}
           <Phone x={vh[0]} y={vh[1] - 30} rot={lerp(-10, 8, show)} s={0.95} front={show > 0.5}>

@@ -60,35 +60,46 @@ const houseX = (f: number): X => {
 };
 
 const seg = (a: Pt, b: Pt, n: number): Pt[] => Array.from({length: n}, (_, k) => [lerp(a[0], b[0], k / n), lerp(a[1], b[1], k / n)] as Pt);
-// contorno da casa: chão direito → parede → telhado → cumeeira → telhado → parede esquerda → sobe até a logo
-const houseTrack = new Track(
-  [
-    ...seg([1160, GROUND], [HX1, GROUND], 10),
-    ...seg([HX1, GROUND], [HX1, EAVE], 16),
-    ...seg([HX1, EAVE], [HX1 + 40, EAVE], 3),
-    ...seg([HX1 + 40, EAVE], APEX, 16),
-    ...seg(APEX, [HX0 - 40, EAVE], 16),
-    ...seg([HX0 - 40, EAVE], [HX0, EAVE], 3),
-    ...seg([HX0, EAVE], [HX0, GROUND], 16),
-    ...new Track([[HX0, GROUND], [70, 1500], [60, 900], [150, 664], [930, 664]], false, 14).pts,
-  ],
-  false,
-  1,
-);
-const HOUSE_DONE = 0.78; // fração do trajeto em que termina o contorno
+// Fibra no contorno da casa: duas linhas sobem juntas por fora das paredes,
+// acompanham o telhado (paralelas ao friso, sem sobrepor) e se encontram na cumeeira.
+// Dali, uma linha sobe e se abre num sublinhado sob a logo.
+const OFF = 34; // distância do contorno
+const ROOF_APEX: Pt = [540, 735]; // ~58 px acima do friso, paralelo a ele
+const sideTrack = (dir: 1 | -1) => {
+  const m = (x: number) => 540 + dir * (x - 540);
+  return new Track(
+    [
+      ...seg([m(1160), GROUND], [m(HX1 + 30), GROUND], 10),
+      ...seg([m(HX1 + 30), GROUND], [m(HX1 + 30), 1172], 18),
+      ...seg([m(HX1 + 30), 1172], [m(1012), 1172], 4),
+      ...seg([m(1012), 1172], [m(1012), ROOF_APEX[1] + (1012 - 540) * 0.771], 3),
+      ...seg([m(1012), ROOF_APEX[1] + (1012 - 540) * 0.771], ROOF_APEX, 22),
+      ROOF_APEX,
+    ],
+    false,
+    1,
+  );
+};
+const LEFT = sideTrack(-1);
+const RIGHT = sideTrack(1);
+const UNDER_Y = 660;
+const UP = new Track([...seg(ROOF_APEX, [540, UNDER_Y], 8), [540, UNDER_Y]], false, 1);
+const UNDER_L = new Track([...seg([540, UNDER_Y], [150, UNDER_Y], 16), [150, UNDER_Y]], false, 1);
+const UNDER_R = new Track([...seg([540, UNDER_Y], [930, UNDER_Y], 16), [930, UNDER_Y]], false, 1);
+const FIB = {sides: [448, 498] as [number, number], up: [498, 506] as [number, number], under: [506, 524] as [number, number], retract: [526, 540] as [number, number]};
 
 const BUB_TL: Bubble[] = [
-  [60, 240, 56],
-  [160, 170, 34],
-  [40, 360, 30],
-  [150, 300, 20],
-  [230, 230, 16],
+  [60, 150, 52],
+  [160, 90, 32],
+  [30, 250, 26],
+  [150, 205, 18],
+  [235, 140, 14],
 ];
 const BUB_BR: Bubble[] = [
-  [1010, 1180, 50],
-  [930, 1250, 30],
-  [1050, 1290, 26],
-  [960, 1140, 16],
+  [1030, 1330, 40],
+  [985, 1398, 22],
+  [1052, 1420, 18],
+  [1004, 1280, 13],
 ];
 
 const Casa3D: React.FC<{f: number}> = ({f}) => (
@@ -161,9 +172,8 @@ export const Casa: React.FC = () => {
   const wf = f; // a sala continua animada
 
   // linha do contorno
-  const lineU = tw(f, [448, 512], [0, houseTrack.max], (t) => t);
   const lineOn = f >= 448 && f < S6 + 10;
-  const pulses = f > 512 ? [0, 1, 2].map((i) => ((f - 512) * 0.9 + i * 30) % (houseTrack.max * HOUSE_DONE)) : [];
+  const pulses = f > FIB.sides[1] ? [0, 1].map((i) => (f - FIB.sides[1]) * 0.8 + i * 27) : [];
 
   // logo
   const logoRev = tw(f, [458, 478], [0, 1], easeOut);
@@ -211,7 +221,20 @@ export const Casa: React.FC = () => {
               })()}
             </g>
           </g>
-          {lineOn && <ConnLine track={houseTrack} to={lineU} width={22} head={lineU < houseTrack.max} pulses={pulses} />}
+          {lineOn && (
+            <g>
+              {[LEFT, RIGHT].map((tr, i) => (
+                <ConnLine key={i} track={tr} to={tw(f, FIB.sides, [0, tr.max], (t) => t)} width={20} head={f < FIB.sides[1]} pulses={pulses.map((q) => q % tr.max)} />
+              ))}
+              {f >= FIB.up[0] && (
+                <ConnLine track={UP} from={tw(f, FIB.retract, [0, UP.max], ease)} to={tw(f, FIB.up, [0, UP.max])} width={20} head={f < FIB.up[1]} />
+              )}
+              {f >= FIB.under[0] &&
+                [UNDER_L, UNDER_R].map((tr, i) => (
+                  <ConnLine key={i} track={tr} to={tw(f, FIB.under, [0, tr.max], easeOut)} width={16} head={f < FIB.under[1]} />
+                ))}
+            </g>
+          )}
         </g>
         {/* visita apresenta o cartão */}
         {f >= S6 && f < S7 + 14 && <Character pose={posVisitaCartao(f)} />}
@@ -257,7 +280,7 @@ export const Casa: React.FC = () => {
       )}
       {/* textos do cartão */}
       {cardIn > 0.6 && (
-        <div style={{position: 'absolute', left: 100, top: 0, width: 660, opacity: Math.min(1, (cardIn - 0.6) * 3)}}>
+        <div style={{position: 'absolute', left: 100, top: 0, width: 660, opacity: Math.min(1, (cardIn - 0.6) * 3) * tw(f, [S7 - 8, S7 - 2], [1, 0])}}>
           <Reveal text="Conheça os planos." start={S6 + 22 - FROM_CASA} size={60} color={C.blue} style={{top: 586, left: 0, right: 0}} />
           <div style={{position: 'absolute', top: 712, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 16}}>
             <svg width={44} height={64} viewBox="-26 -36 52 70" style={{marginTop: 6, transform: `scale(${pop(f, VO.cobertura - 4)})`}}>

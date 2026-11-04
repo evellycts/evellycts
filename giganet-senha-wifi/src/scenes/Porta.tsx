@@ -68,8 +68,9 @@ const posAnfitria = (f: number): Pose => {
   p.bob = Math.sin(f * 0.9) * 5 * laugh;
   p.lean = tw(f, [56, 62, 70, 118, 126], [0, -4, 6, 6, -2]);
   p.squash = tw(f, [56, 62, 68], [1, 0.97, 1.02]);
-  const door: Pt = [462, 1150];
-  p.armL = f < 24 ? ik(p, 'L', door, 1) : mixArm(ik(p, 'L', door, 1), [12, -8], tw(f, [20, 30], [0, 1]));
+  // recebe a visita com a mão aberta, depois baixa o braço
+  const welcome = tw(f, [0, 8, 22, 32], [0.4, 1, 1, 0], ease);
+  p.armL = mixArm([10, -8], [58, -42], welcome);
   // aponta o sofá (com antecipação)
   const point = tw(f, [58, 64, 70], [0, -0.25, 1], ease) * tw(f, [116, 124], [1, 0]);
   p.armR = mixArm([10, -6], [96, 4], point);
