@@ -68,7 +68,7 @@ const WordPill: React.FC<{L: number; at: number; until: number; text: string; bg
           background: bg,
           padding: '14px 54px 18px',
           transform: `scale(${0.85 + 0.15 * tIn}) translateY(${-tOut * 40}px)`,
-          opacity: 1 - tOut,
+          opacity: Math.min(1, tIn * 3) * (1 - tOut),
           boxShadow: '0 18px 40px rgba(0,0,0,0.18)',
         }}
       >

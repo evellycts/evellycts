@@ -40,20 +40,41 @@ const DEV = {
   monitor: [604, 970] as Pt,
   phone: [654, 1578] as Pt,
 };
-const HOUSE_WAY: Pt[] = [
-  [1180, 1700],
-  [790, 1700],
-  DEV.router, // 2
-  DEV.tv, // 3
-  [300, 1250],
-  DEV.tablet, // 5
-  [454, 900],
-  DEV.monitor, // 7
-  [620, 1300],
-  DEV.phone, // 9
+/**
+ * Fibra óptica na casa, como uma instalação real:
+ * chega da rua por baixo do chão, sobe por dentro da parede central (x = 446)
+ * e sai em ramais retos até cada aparelho.
+ */
+const WALL_X = 446;
+const FIBER_Y = 1764; // eletroduto sob a calçada
+const TOP_Y = 960;
+const seg = (a: Pt, b: Pt, n: number): Pt[] =>
+  Array.from({length: n}, (_, k) => [lerp(a[0], b[0], k / n), lerp(a[1], b[1], k / n)] as Pt);
+const N_H = 30;
+const N_V = 40;
+const trunk = new Track(
+  [...seg([-140, FIBER_Y], [WALL_X, FIBER_Y], N_H), ...seg([WALL_X, FIBER_Y], [WALL_X, TOP_Y], N_V), [WALL_X, TOP_Y]],
+  false,
+  1,
+);
+/** índice do tronco quando ele passa na altura y */
+const trunkIdx = (y: number) => N_H + ((FIBER_Y - y) / (FIBER_Y - TOP_Y)) * N_V;
+const FIB_START = 12;
+const FIB_END = 46;
+const trunkFrame = (idx: number) => FIB_START + (idx / trunk.max) * (FIB_END - FIB_START);
+
+type Branch = {y: number; pts: Pt[]; dev: Pt};
+const RAW_BRANCHES: Branch[] = [
+  {y: 1592, pts: [[WALL_X, 1592], [DEV.router[0] + 18, 1592]], dev: DEV.router},
+  // passa acima da geladeira e desce até o celular
+  {y: 1398, pts: [[WALL_X, 1398], [DEV.phone[0], 1398], [DEV.phone[0], 1522]], dev: DEV.phone},
+  {y: 1417, pts: [[WALL_X, 1417], [DEV.tv[0] + 66, 1417]], dev: DEV.tv},
+  {y: 1056, pts: [[WALL_X, 1056], [DEV.tablet[0] + 36, 1056]], dev: DEV.tablet},
+  {y: 966, pts: [[WALL_X, 966], [DEV.monitor[0] - 62, 966]], dev: DEV.monitor},
 ];
-const DEV_IDX = [2, 3, 5, 7, 9];
-const houseTrack = new Track(HOUSE_WAY);
+const BRANCHES: Branch[] = RAW_BRANCHES.map((b) => ({...b, pts: b.pts.length === 2 ? seg(b.pts[0], b.pts[1], 12).concat([b.pts[1]]) : [...seg(b.pts[0], b.pts[1], 12), ...seg(b.pts[1], b.pts[2], 8), b.pts[2]]}));
+const branchTracks = BRANCHES.map((b) => new Track(b.pts, false, 1));
+const branchStart = BRANCHES.map((b) => trunkFrame(trunkIdx(b.y)));
 
 // ---------- moldura do contato
 const CARD = {x: 100, y: 330, w: 720, h: 640, r: 64};
@@ -138,7 +159,7 @@ const OtherRooms: React.FC<{g: number}> = ({g}) => {
   );
 };
 
-const House: React.FC<{g: number; lineU: number; pulses: number[]}> = ({g, lineU, pulses}) => {
+const House: React.FC<{g: number; pulses: number[]}> = ({g, pulses}) => {
   const [bl] = [CELL.BL];
   return (
     <g>
@@ -158,19 +179,24 @@ const House: React.FC<{g: number; lineU: number; pulses: number[]}> = ({g, lineU
       </svg>
       <rect x={438} y={624} width={16} height={GROUND - 624} fill="#ECE9EA" />
       <rect x={120} y={1177} width={668} height={16} fill="#ECE9EA" />
-      {/* dispositivos acendem quando a linha passa */}
-      {DEV_IDX.map((di, i) => {
-        if (lineU < di) return null;
-        const p = houseTrack.at(di);
-        const t0 = lineU - di;
-        const ring = (t0 * 1.2) % 1;
+      {/* fibra: tronco na parede central + ramais até os aparelhos */}
+      <ConnLine track={trunk} to={tw(g, [FIB_START, FIB_END], [0, trunk.max], (t) => t)} width={12} head={g < FIB_END} pulses={g > FIB_END ? pulses.map((q) => q % trunk.max) : []} />
+      {branchTracks.map((bt, i) => {
+        const st = branchStart[i];
+        if (g < st) return null;
+        const u = tw(g, [st, st + 7], [0, bt.max], easeOut);
+        const done = g - (st + 7);
+        const ring = done > 0 ? (done / 24) % 1 : -1;
+        const d = BRANCHES[i].dev;
         return (
           <g key={i}>
-            <circle cx={p[0]} cy={p[1]} r={20 + ring * 50} fill="none" stroke={C.orange} strokeWidth={5 * (1 - ring)} opacity={1 - ring} />
+            <ConnLine track={bt} to={u} width={10} head={u < bt.max} pulses={done > 0 ? [((done * 0.5) % 1) * bt.max] : []} />
+            {ring >= 0 && (
+              <circle cx={d[0]} cy={d[1]} r={18 + ring * 44} fill="none" stroke={C.orange} strokeWidth={5 * (1 - ring)} opacity={1 - ring} />
+            )}
           </g>
         );
       })}
-      <ConnLine track={houseTrack} to={lineU} width={14} head={lineU < houseTrack.max} pulses={pulses} />
     </g>
   );
 };
@@ -191,8 +217,7 @@ export const Fechamento: React.FC = () => {
   const hFade = tw(J, [0, 32], [1, 0.4]) * tw(E, [0, 14], [1, 0]);
   const houseT = `translate(${o[0] - CELL.BL[0] * sc} ${o[1] - CELL.BL[1] * sc}) scale(${sc}) translate(454 ${GROUND}) scale(${hs}) translate(-454 ${-GROUND})`;
 
-  const lineU = tw(g, [14, 62], [0, houseTrack.max], (t) => t);
-  const pulses = g > 62 ? [0, 1, 2].map((i) => ((g - 62) * 0.22 + i * 3) % houseTrack.max) : [];
+  const pulses = g > FIB_END ? [0, 1, 2].map((i) => (g - FIB_END) * 0.9 + i * (trunk.max / 3)) : [];
 
   // ---------- moldura (cena 6)
   const apexY = GROUND - (GROUND - APEX[1]) * hs;
@@ -207,7 +232,7 @@ export const Fechamento: React.FC = () => {
   const frameU = tw(J, [0, 30], [0, frameTrack.max], ease);
   const leadLen = 32;
   const frameFrom = tw(J, [24, 40], [0, leadLen]);
-  const cardIn = tw(J, [22, 34], [0, 1], easeOut);
+  const cardIn = tw(J, [22, 32], [0, 1], easeOut);
 
   // ---------- expansão (cena 7)
   const ex = tw(E, [0, 16], [0, 1], ease);
@@ -294,13 +319,13 @@ export const Fechamento: React.FC = () => {
           <g transform={houseT}>
             <rect x={-1200} y={GROUND} width={3600} height={800} fill="#0E2A4F" />
             <rect x={-1200} y={GROUND} width={3600} height={18} fill="#1E4A7A" />
-            <House g={g} lineU={lineU} pulses={pulses} />
+            <House g={g} pulses={pulses} />
           </g>
         </g>
         {/* moldura do contato */}
         {J >= 0 && E < 20 && (
           <g>
-            <g opacity={cardIn}>
+            <g opacity={Math.min(1, cardIn * 2.5)} transform={`translate(460 650) scale(${0.92 + 0.08 * cardIn}) translate(-460 -650)`}>
               <rect x={card.x} y={card.y} width={card.w} height={card.h} rx={card.r} fill="#FFFFFF" />
             </g>
             {E < 6 && (

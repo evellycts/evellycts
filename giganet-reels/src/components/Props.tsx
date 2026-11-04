@@ -227,16 +227,20 @@ export const ArmchairBack: React.FC<{x: number; y: number; color?: string}> = ({
     <rect x={x - 170} y={y - 280} width={340} height={330} rx={70} fill={color} />
     <rect x={x - 130} y={y - 250} width={260} height={240} rx={50} fill="#E7E3E4" />
     <rect x={x - 70} y={y - 170} width={120} height={90} rx={30} fill={C.orange} transform={`rotate(-8 ${x} ${y - 125})`} />
+    {/* base até o chão (assento em y, chão em y + 190) */}
+    <rect x={x - 165} y={y + 20} width={330} height={152} rx={22} fill="#C2BBBE" />
     <rect x={x - 150} y={y - 20} width={300} height={70} rx={26} fill="#CBC5C7" />
-    <rect x={x - 150} y={y + 46} width={24} height={50} rx={6} fill="#8C5E38" />
-    <rect x={x + 126} y={y + 46} width={24} height={50} rx={6} fill="#8C5E38" />
+    <rect x={x - 150} y={y + 168} width={26} height={22} rx={5} fill="#8C5E38" />
+    <rect x={x + 124} y={y + 168} width={26} height={22} rx={5} fill="#8C5E38" />
   </g>
 );
 
 export const ArmchairFront: React.FC<{x: number; y: number; color?: string}> = ({x, y, color = '#D9D4D6'}) => (
   <g>
-    <rect x={x - 200} y={y - 120} width={70} height={180} rx={34} fill={color} />
-    <rect x={x + 130} y={y - 120} width={70} height={180} rx={34} fill={color} />
+    <rect x={x - 200} y={y - 120} width={70} height={292} rx={34} fill={color} />
+    <rect x={x + 130} y={y - 120} width={70} height={292} rx={34} fill={color} />
+    <rect x={x - 194} y={y + 168} width={26} height={22} rx={5} fill="#8C5E38" />
+    <rect x={x + 168} y={y + 168} width={26} height={22} rx={5} fill="#8C5E38" />
   </g>
 );
 
