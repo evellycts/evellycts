@@ -2,6 +2,7 @@ import React from 'react';
 import {AbsoluteFill, Img, staticFile, useCurrentFrame} from 'remotion';
 import {Character, Pose, ik, mixArm} from '../components/Character';
 import {ConnLine, Pt, Track} from '../components/Line';
+import {Bubble, BubbleDefs, Bubbles, Contours} from '../components/Decor';
 import {PinIcon, WhatsIcon} from '../components/Props';
 import {Room} from '../components/Room';
 import {Reveal} from '../components/Text';
@@ -113,6 +114,25 @@ const densify = (pts: Pt[], n = 14): Pt[] => {
 };
 const playLead = new Track([[-60, 560], [160, 470], [330, 300], PLAY.a], false, 18);
 const playTri = new Track(densify([PLAY.a, PLAY.c, PLAY.b, PLAY.a]), false, 1);
+
+// assinatura sobre o azul da arte da marca
+const BRAND_BG = '#084AA9'; // + granulado ≈ azul da arte original (#084EAD)
+const WAVE_Y = 1470;
+const S7_BUB_TOP: Bubble[] = [
+  [70, 260, 62],
+  [180, 190, 40],
+  [40, 390, 34],
+  [160, 340, 24],
+  [250, 250, 18],
+  [110, 150, 20],
+];
+const S7_BUB_BOTTOM: Bubble[] = [
+  [110, 1710, 64],
+  [230, 1790, 40],
+  [50, 1590, 30],
+  [250, 1660, 24],
+  [170, 1620, 16],
+];
 
 const OtherRooms: React.FC<{g: number}> = ({g}) => {
   const glow = 0.85 + Math.sin(g * 0.2) * 0.1;
@@ -235,7 +255,7 @@ export const Fechamento: React.FC = () => {
   const cardIn = tw(J, [22, 32], [0, 1], easeOut);
 
   // ---------- expansão (cena 7)
-  const ex = tw(E, [0, 16], [0, 1], ease);
+  const ex = tw(E, [0, 10], [0, 1], ease);
   const card = {
     x: lerp(CARD.x, -60, ex),
     y: lerp(CARD.y, -60, ex),
@@ -282,7 +302,7 @@ export const Fechamento: React.FC = () => {
   // ---------- assinatura
   const logoW = 860;
   const logoH = (logoW * 162) / 500;
-  const logoRev = tw(E, [8, 28], [0, 1], easeOut);
+  const logoRev = tw(E, [15, 32], [0, 1], easeOut);
   const leadU = tw(E, [56, 66], [0, playLead.max], easeIn);
   const triU = tw(E, [66, 80], [0, playTri.max], easeOut);
   const leadFrom = tw(E, [64, 76], [0, playLead.max]);
@@ -349,6 +369,37 @@ export const Fechamento: React.FC = () => {
         {E >= 0 && (
           <g>
             <rect x={-60} y={-60} width={1200} height={2040} fill="#FFFFFF" opacity={ex >= 1 ? 1 : 0} />
+            {/* cortina azul da marca desce com borda ondulada; a onda branca embaixo é o "chão" da personagem */}
+            {(() => {
+              const cy = tw(E, [9, 22], [-160, WAVE_Y], easeOut);
+              const amp = 46;
+              const ph = E * 0.04;
+              const pts: string[] = [];
+              for (let i = 0; i <= 24; i++) {
+                const x = -60 + (i / 24) * 1200;
+                pts.push(`${x.toFixed(1)} ${(cy + Math.sin(i / 24 * Math.PI * 2 + ph) * amp - (i / 24) * 70).toFixed(1)}`);
+              }
+              const d = `M -60 -60 L 1140 -60 L ${pts.reverse().join(' L ')} Z`;
+              return (
+                <g>
+                  <defs>
+                    {/* granulado igual ao da arte original, para a faixa da logo se fundir ao fundo */}
+                    <filter id="s7-grain" x="0" y="0" width="100%" height="100%">
+                      <feTurbulence type="fractalNoise" baseFrequency="0.38" numOctaves="3" seed="7" />
+                      <feColorMatrix type="saturate" values="0" />
+                      <feComposite in2="SourceGraphic" operator="in" />
+                    </filter>
+                  </defs>
+                  <path d={d} fill={BRAND_BG} />
+                  <path d={d} fill="#000" filter="url(#s7-grain)" opacity={0.28} style={{mixBlendMode: 'overlay'}} />
+                </g>
+              );
+            })()}
+            <BubbleDefs id="s7" />
+            <Contours cx={1110} cy={150} r0={70} n={10} f={E} start={20} opacity={0.8} seed={2} />
+            <Contours cx={-20} cy={1930} r0={150} n={8} f={E} start={30} color={C.blue} opacity={0.22} seed={4} />
+            <Bubbles id="s7" list={S7_BUB_TOP} f={E} start={18} />
+            <Bubbles id="s7" list={S7_BUB_BOTTOM} f={E} start={34} />
             {/* play desenhado pela linha */}
             {E >= 56 && (
               <g>
@@ -418,18 +469,18 @@ export const Fechamento: React.FC = () => {
       {E >= 6 && (
         <>
           <Img
-            src={staticFile('logo-giganet.png')}
+            src={staticFile('logo-giganet-azul.png')}
             style={{
               position: 'absolute',
-              width: logoW,
-              height: logoH,
-              left: 540 - logoW / 2,
-              top: 680 - logoH / 2 + (1 - logoRev) * 20,
+              width: 900,
+              height: (900 * 205) / 500,
+              left: 540 - 450,
+              top: 680 - (900 * 205) / 1000 + (1 - logoRev) * 20,
               transform: `scale(${0.95 + 0.05 * logoRev})`,
               clipPath: `inset(-2% ${50 * (1 - logoRev)}% -2% ${50 * (1 - logoRev)}%)`,
             }}
           />
-          <Reveal text={'Seu próximo play\ncomeça aqui.'} start={VO.proximoPlay - G0 - 4} stagger={3} size={78} color={C.blue} style={{top: 880, left: 0, right: 0}} />
+          <Reveal text={'Seu próximo play\ncomeça aqui.'} start={VO.proximoPlay - G0 - 4} stagger={3} size={78} color="#FFFFFF" style={{top: 880, left: 0, right: 0}} />
           {E >= 84 && (
             <div style={{position: 'absolute', top: 1130, left: 0, right: 0, display: 'flex', justifyContent: 'center'}}>
               <div

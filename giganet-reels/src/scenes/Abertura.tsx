@@ -19,6 +19,7 @@ import {
 } from '../components/Props';
 import {Room} from '../components/Room';
 import {Letters} from '../components/Text';
+import {Bubble, BubbleDefs, Bubbles, Contours} from '../components/Decor';
 import {C, FONT, ease, easeIn, easeOut, lerp, pop, tw} from '../theme';
 import {VO} from '../timeline';
 
@@ -44,6 +45,21 @@ const STOPS = {
   tv: {x: 690, y: 3290, f: VO.serie},
 };
 const LOGO_C: Pt = [540, 4560];
+const S3_BUB_TOP: Bubble[] = [
+  [950, 330, 60],
+  [1040, 240, 40],
+  [870, 250, 28],
+  [1030, 430, 30],
+  [900, 450, 18],
+  [1060, 340, 20],
+];
+const S3_BUB_BOTTOM: Bubble[] = [
+  [970, 1620, 62],
+  [880, 1720, 38],
+  [1050, 1530, 34],
+  [1040, 1760, 26],
+  [890, 1590, 18],
+];
 const R_CIRCLE = 470;
 const circlePts: Pt[] = Array.from({length: 12}, (_, i) => {
   const a = -Math.PI / 2 - (i * Math.PI) / 6; // começa no topo, gira anti-horário
@@ -286,6 +302,16 @@ export const Abertura: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* elementos da arte da marca */}
+      {f >= 296 && (
+        <svg width={1080} height={1920} viewBox="0 0 1080 1920" style={{position: 'absolute', left: 0, top: 0}}>
+          <BubbleDefs id="s3" />
+          <Contours cx={-30} cy={290} r0={110} n={9} f={f} start={300} opacity={0.55} seed={1} />
+          <Contours cx={1120} cy={1880} r0={130} n={9} f={f} start={308} color={C.blue} opacity={0.28} seed={3} />
+          <Bubbles id="s3" list={S3_BUB_TOP} f={f} start={302} />
+          <Bubbles id="s3" list={S3_BUB_BOTTOM} f={f} start={314} />
+        </svg>
       )}
       {/* logo original (proporção preservada), revelada por máscara */}
       {f >= 290 && (
