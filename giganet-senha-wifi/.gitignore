@@ -1,5 +1,4 @@
 node_modules
 out/*.png
-out/stills/
-out/check*/
+out/c*/
 .DS_Store
