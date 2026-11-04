@@ -103,7 +103,7 @@ export const DiaNoite: React.FC = () => {
   );
   const irisU = tw(L, [0, 12], [0, iris.max], easeOut);
   const irisR = tw(L, [8, 26], [330, 1250], easeIn);
-  const irisFade = tw(L, [20, 28], [1, 0]);
+  const irisFade = tw(L, [14, 22], [1, 0]);
 
   // ---------- giro da cadeira (L78–96)
   const k = tw(L, [76, 96], [0, 1], ease);
@@ -151,8 +151,8 @@ export const DiaNoite: React.FC = () => {
     p.armR = mixArm(ik(p, 'R', typeR), ik(p, 'R', pen, 1), studyT);
     p.armL = mixArm(ik(p, 'L', typeL), ik(p, 'L', book, 1), studyT);
   } else {
-    const restL: Pt = [292, 1336];
-    const restR: Pt = [628, 1336];
+    const restL: Pt = [425, 1392];
+    const restR: Pt = [498, 1392];
     const sitArmsL = ik(p, 'L', restL, 1);
     const sitArmsR = ik(p, 'R', restR, 1);
     p.armL = mixArm(sitArmsL, [10, -6], standUp);
@@ -231,8 +231,8 @@ export const DiaNoite: React.FC = () => {
           <circle cx={540} cy={960} r={irisR} fill="none" stroke={C.orange} strokeWidth={10} opacity={irisFade} />
         )}
       </svg>
-      <WordPill L={L} at={W.trabalho} until={W.estudo - 6} text="Trabalho." bg={C.blue} color="#FFFFFF" />
-      <WordPill L={L} at={W.estudo} until={W.diversao - 6} text="Estudo." bg={C.blue} color="#FFFFFF" />
+      <WordPill L={L} at={W.trabalho} until={W.estudo - 12} text="Trabalho." bg={C.blue} color="#FFFFFF" />
+      <WordPill L={L} at={W.estudo} until={W.diversao - 12} text="Estudo." bg={C.blue} color="#FFFFFF" />
       <WordPill L={L} at={W.diversao} until={170} text="Diversão." bg={C.orange} color={C.ink} />
     </AbsoluteFill>
   );

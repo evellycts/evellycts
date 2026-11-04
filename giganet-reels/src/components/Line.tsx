@@ -73,12 +73,14 @@ export const ConnLine: React.FC<{
   const h = track.at(to);
   return (
     <g>
+      {/* contorno claro: mantém a linha legível sobre o azul-escuro */}
+      <path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.85} strokeWidth={width * 1.35} strokeLinecap="round" strokeLinejoin="round" />
       <path d={d} fill="none" stroke={C.blue} strokeWidth={width} strokeLinecap="round" strokeLinejoin="round" />
       <path
         d={d}
         fill="none"
         stroke={C.orange}
-        strokeWidth={width * 0.34}
+        strokeWidth={width * 0.42}
         strokeLinecap="round"
         strokeLinejoin="round"
       />

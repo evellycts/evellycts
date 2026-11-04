@@ -98,9 +98,10 @@ const posePrimeira = (f: number): Pose => {
   else if (f < 72) tR = [lerp(PLAY_POS[0], restR[0], tw(f, [6, 18], [0, 1])), lerp(PLAY_POS[1], restR[1], tw(f, [6, 18], [0, 1]))];
   else if (f < 86) tR = [lerp(restR[0], 575, tw(f, [72, 84], [0, 1])), lerp(restR[1], 1310, tw(f, [72, 84], [0, 1]))];
   else if (f < 93) tR = [lerp(575, PLAY_POS[0], tw(f, [86, 92], [0, 1], easeIn)), lerp(1310, PLAY_POS[1], tw(f, [86, 92], [0, 1], easeIn))];
-  else if (f < 106) tR = [lerp(PLAY_POS[0], 610, tw(f, [93, 104], [0, 1])), lerp(PLAY_POS[1], 1125, tw(f, [93, 104], [0, 1]))];
-  else tR = [lerp(610, 530, tw(f, [106, 116], [0, 1], easeOut)), lerp(1125, 1050, tw(f, [106, 116], [0, 1], easeOut))];
-  p.armR = ik(p, 'R', tR, 1);
+  else if (f < 106) tR = [lerp(PLAY_POS[0], 640, tw(f, [93, 104], [0, 1])), lerp(PLAY_POS[1], 1225, tw(f, [93, 104], [0, 1]))];
+  else tR = [lerp(640, 585, tw(f, [106, 116], [0, 1], easeOut)), lerp(1225, 1265, tw(f, [106, 116], [0, 1], easeOut))];
+  // cotovelo para baixo: o braço nunca passa na frente do rosto
+  p.armR = ik(p, 'R', tR, -1);
   const lArm = ik(p, 'L', restL, 1);
   // braço esquerdo acompanha o puxão (equilíbrio)
   p.armL = mixArm(lArm, [55, -60], tw(f, [106, 116], [0, 1]));
@@ -152,23 +153,24 @@ export const Abertura: React.FC = () => {
   const reveal = tw(f, [294, 314], [0, 1], easeOut);
 
   // ---- personagem na cena 3
+  const f3 = f - 12; // entra só depois que o fundo branco cobre a tela
   const p3: Pose = {x: 300, y: 5130, s: 0.85, sit: 0};
-  const walk = tw(f, [292, 312], [0, 1], easeOut);
+  const walk = tw(f3, [292, 312], [0, 1], easeOut);
   p3.x = lerp(-260, 300, walk);
-  p3.bob = f < 312 ? -Math.abs(Math.sin(f * 0.55)) * 18 : 0;
-  p3.lean = tw(f, [292, 306, 314, 320], [10, 8, -3, 0]);
-  p3.squash = tw(f, [310, 314, 320], [1, 0.96, 1]);
-  p3.lookX = tw(f, [300, 314, 344, 352], [1, 0.7, 0.7, 0]);
-  p3.lookY = tw(f, [300, 314, 344, 352], [0, -1, -1, 0]);
-  p3.headTilt = tw(f, [312, 320, 344, 352], [0, -6, -6, 4]);
-  p3.headTurn = tw(f, [312, 320, 344, 352], [0, 0.3, 0.3, 0]);
-  p3.blink = blinkAt(f, [336, 380]);
-  p3.mouth = f < 330 ? 'smile' : 'grin';
-  p3.browL = tw(f, [326, 334], [0, 0.5]);
-  p3.browR = tw(f, [326, 334], [0, 0.5]);
-  const present = tw(f, [324, 338], [0, 1], easeOut);
-  p3.armR = mixArm([12, -10 + Math.sin(f * 0.55) * 20 * (1 - walk)], [128, -34], present);
-  p3.armL = mixArm([-8 - Math.sin(f * 0.55) * 20 * (1 - walk), 0], [34, -118], tw(f, [330, 344], [0, 1]));
+  p3.bob = f3 < 312 ? -Math.abs(Math.sin(f3 * 0.55)) * 18 : 0;
+  p3.lean = tw(f3, [292, 306, 314, 320], [10, 8, -3, 0]);
+  p3.squash = tw(f3, [310, 314, 320], [1, 0.96, 1]);
+  p3.lookX = tw(f3, [300, 314, 344, 352], [1, 0.7, 0.7, 0]);
+  p3.lookY = tw(f3, [300, 314, 344, 352], [0, -1, -1, 0]);
+  p3.headTilt = tw(f3, [312, 320, 344, 352], [0, -6, -6, 4]);
+  p3.headTurn = tw(f3, [312, 320, 344, 352], [0, 0.3, 0.3, 0]);
+  p3.blink = blinkAt(f3, [336, 380]);
+  p3.mouth = f3 < 330 ? 'smile' : 'grin';
+  p3.browL = tw(f3, [326, 334], [0, 0.5]);
+  p3.browR = tw(f3, [326, 334], [0, 0.5]);
+  const present = tw(f3, [324, 338], [0, 1], easeOut);
+  p3.armR = mixArm([12, -10 + Math.sin(f3 * 0.55) * 20 * (1 - walk)], [150, -22], present);
+  p3.armL = mixArm([-8 - Math.sin(f3 * 0.55) * 20 * (1 - walk), 0], [34, -118], tw(f3, [330, 344], [0, 1]));
 
   // ---- objetos ativos
   const tvPlayPulse = 1 + Math.sin(f * 0.3) * 0.06;
@@ -225,7 +227,7 @@ export const Abertura: React.FC = () => {
           </ObjectPop>
           <ObjectPop f={f} at={STOPS.tv.f} x={STOPS.tv.x} y={STOPS.tv.y}>
             <rect x={-236} y={-140} width={472} height={280} rx={22} fill="none" stroke="#2E6FD1" strokeWidth={6} />
-            <TV x={0} y={0} w={440} glow={1}>
+            <TV x={0} y={0} w={440}>
               <rect width={400} height={250} fill="#13306B" />
               <g transform={`translate(200 125) scale(${tvPlayPulse})`}>
                 <PlayBadge r={52} />
@@ -265,7 +267,7 @@ export const Abertura: React.FC = () => {
           )}
 
           {/* ---------- CENA 3: marca */}
-          {f >= 290 && (
+          {f >= 302 && (
             <g>
               <Character pose={p3} />
             </g>

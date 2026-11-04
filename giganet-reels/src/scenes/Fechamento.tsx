@@ -56,7 +56,7 @@ const DEV_IDX = [2, 3, 5, 7, 9];
 const houseTrack = new Track(HOUSE_WAY);
 
 // ---------- moldura do contato
-const CARD = {x: 100, y: 330, w: 720, h: 690, r: 64};
+const CARD = {x: 100, y: 330, w: 720, h: 640, r: 64};
 const roundedRect = (x: number, y: number, w: number, h: number, r: number): Pt[] => {
   const pts: Pt[] = [];
   const arc = (cx: number, cy: number, a0: number, a1: number) => {
@@ -75,9 +75,9 @@ const roundedRect = (x: number, y: number, w: number, h: number, r: number): Pt[
 
 // ---------- play final
 const PLAY = {
-  a: [488, 318] as Pt,
-  b: [488, 482] as Pt,
-  c: [632, 400] as Pt,
+  a: [470, 318] as Pt,
+  b: [470, 482] as Pt,
+  c: [614, 400] as Pt,
 };
 const densify = (pts: Pt[], n = 14): Pt[] => {
   const out: Pt[] = [];
@@ -170,7 +170,7 @@ const House: React.FC<{g: number; lineU: number; pulses: number[]}> = ({g, lineU
           </g>
         );
       })}
-      <ConnLine track={houseTrack} to={lineU} width={10} head={lineU < houseTrack.max} pulses={pulses} />
+      <ConnLine track={houseTrack} to={lineU} width={14} head={lineU < houseTrack.max} pulses={pulses} />
     </g>
   );
 };
@@ -226,9 +226,9 @@ export const Fechamento: React.FC = () => {
   p.y = lerp(1368, 1480, zt);
   p.s = lerp(1, 0.7, zt);
   const e7 = tw(E, [0, 20], [0, 1], ease);
-  p.x = lerp(p.x, 905, e7);
-  p.y = lerp(p.y, 1645, e7);
-  p.s = lerp(p.s, 0.58, e7);
+  p.x = lerp(p.x, 880, e7);
+  p.y = lerp(p.y, 1590, e7);
+  p.s = lerp(p.s, 0.66, e7);
   p.blink = blinkAt(g, [20, 70, 120, 190, 262, 320, 370]);
   p.mouth = 'grin';
   // convite (cena 5)
@@ -237,7 +237,7 @@ export const Fechamento: React.FC = () => {
   p.lean = lerp(0, 4, inv);
   p.headTilt = lerp(0, -6, inv);
   p.armL = mixArm([10, -6], [62, -22], inv);
-  p.armR = mixArm([10, -6], [96, -70 + beck], inv);
+  p.armR = mixArm([10, -6], [132, -62 + beck], inv);
   p.browL = 0.4 * inv;
   p.browR = 0.4 * inv;
   // aponta para a moldura (cena 6)
@@ -304,14 +304,14 @@ export const Fechamento: React.FC = () => {
               <rect x={card.x} y={card.y} width={card.w} height={card.h} rx={card.r} fill="#FFFFFF" />
             </g>
             {E < 6 && (
-              <g transform={`translate(${460} ${675}) scale(${1 + (J > 34 ? Math.sin(J * 0.2) * 0.004 : 0)}) translate(-460 -675)`}>
+              <g transform={`translate(${460} ${650}) scale(${1 + (J > 34 ? Math.sin(J * 0.2) * 0.004 : 0)}) translate(-460 -650)`}>
                 <ConnLine track={frameTrack} from={frameFrom} to={frameU} width={14} head={frameU < frameTrack.max - 0.5} />
               </g>
             )}
             {/* conteúdo */}
             <g opacity={contentOut}>
               {J >= 30 && (
-                <g transform={`translate(460 470)`}>
+                <g transform={`translate(460 482)`}>
                   <circle r={72 + pulse * 46} fill="none" stroke={C.whats} strokeWidth={8 * (1 - pulse)} opacity={1 - pulse} />
                   <g transform={`scale(${pop(J, 30, 30, 9)})`}>
                     <WhatsIcon r={72} />
@@ -354,7 +354,7 @@ export const Fechamento: React.FC = () => {
             <div
               style={{
                 position: 'absolute',
-                top: 560,
+                top: 574,
                 left: CARD.x,
                 width: CARD.w,
                 textAlign: 'center',
@@ -369,8 +369,8 @@ export const Fechamento: React.FC = () => {
               WhatsApp
             </div>
           )}
-          <Reveal text="Conheça os planos" start={VO.planos - G0 - 6} size={66} color={C.blue} style={{top: 650, left: CARD.x, width: CARD.w}} />
-          <div style={{position: 'absolute', top: 790, left: CARD.x, width: CARD.w, display: 'flex', justifyContent: 'center', gap: 18}}>
+          <Reveal text="Conheça os planos" start={VO.planos - G0 - 6} size={66} color={C.blue} style={{top: 664, left: CARD.x, width: CARD.w}} />
+          <div style={{position: 'absolute', top: 800, left: CARD.x, width: CARD.w, display: 'flex', justifyContent: 'center', gap: 18}}>
             <svg width={44} height={64} viewBox="-26 -36 52 70" style={{marginTop: 6, transform: `scale(${pop(J, VO.cobertura - G0 - J0 - 4)})`}}>
               <PinIcon color={C.orange} />
             </svg>
