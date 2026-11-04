@@ -1,0 +1,5 @@
+node_modules
+out/*.png
+out/stills/
+out/check*/
+.DS_Store
