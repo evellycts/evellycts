@@ -1,0 +1,21 @@
+{
+  "name": "giganet-reels",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Giganet JP – Sua vida no play (Reels 1080x1920, 30fps)",
+  "scripts": {
+    "studio": "remotion studio",
+    "audio": "python3 scripts/gerar_audio.py",
+    "render": "remotion render GiganetReels out/giganet-sua-vida-no-play.mp4",
+    "still": "remotion still GiganetReels out/still.png"
+  },
+  "dependencies": {
+    "@fontsource/poppins": "^5.1.0",
+    "@remotion/cli": "^4.0.540",
+    "@types/react": "^18.3.12",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.540",
+    "typescript": "^5.6.3"
+  }
+}
